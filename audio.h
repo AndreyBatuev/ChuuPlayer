@@ -10,7 +10,7 @@ public:
     void pause();
     void stop();
     void setVolume(float volume);
-    // Add other controls as needed...
+
 
 private:
     sf::Music music;

@@ -1,20 +1,13 @@
 #include "audio.h"
 #include <iostream>
+#include <gtk/gtk.h>
 
-int main() {
-    AudioPlayer player;
-    
-    if (!player.load("song.mp3")) {
-        std::cerr << "Failed to load audio file!" << std::endl;
-        return 1;
-    }
-
-    player.play();
-    player.setVolume(100.0f);
-
-    while (true) {
-
-    }
-
+int main(int argc, char *argv[]) {
+    gtk_init(&argc, &argv);
+    GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_title(GTK_WINDOW(window), "ChuuPlayer");
+    g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    gtk_widget_show_all(window);
+    gtk_main();
     return 0;
 }
