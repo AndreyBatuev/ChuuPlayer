@@ -2,6 +2,31 @@
 #include <iostream>
 #include <gtk/gtk.h>
 
+void PlayClick(GtkWidget *widget, gpointer data) {
+    g_print("PlayBtn %s\n", (char*)data);
+} 
+void createButtons(GtkWidget *right_container) {
+    GtkWidget *button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);  
+    
+    GtkWidget *align = gtk_alignment_new(0.5, 0.9, 0, 0);  
+    
+    GtkWidget *nextBtn = gtk_button_new_with_label("Next");
+    GtkWidget *playBtn = gtk_button_new_with_label("Play");
+    GtkWidget *backBtn = gtk_button_new_with_label("Back");
+    
+    g_signal_connect(nextBtn, "clicked", G_CALLBACK(PlayClick), (gpointer)"Next");
+    g_signal_connect(playBtn, "clicked", G_CALLBACK(PlayClick), (gpointer)"Play");
+    g_signal_connect(backBtn, "clicked", G_CALLBACK(PlayClick), (gpointer)"Back");
+    
+    gtk_box_pack_start(GTK_BOX(button_box), nextBtn, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(button_box), playBtn, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(button_box), backBtn, FALSE, FALSE, 0);
+    
+    gtk_container_add(GTK_CONTAINER(align), button_box);  
+    
+    gtk_container_add(GTK_CONTAINER(right_container), align);
+}
+
 int main(int argc, char *argv[]) {
     gtk_init(&argc, &argv);
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -29,7 +54,7 @@ int main(int argc, char *argv[]) {
         gdk_screen_get_default(),
         GTK_STYLE_PROVIDER(provider),
         GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
+    createButtons(right_container);
     gtk_widget_show_all(window);
     gtk_main();
     return 0;
