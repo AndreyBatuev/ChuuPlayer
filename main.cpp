@@ -37,18 +37,17 @@ int BackClick(GtkWidget *widget, gpointer data) {
     return 0;
 }
 
-void on_slider_changed(GtkRange *range, gpointer user_data) {
-    double value = gtk_range_get_value(range);
-    g_print("Slider value: %.2f\n", value);
+void on_time_slider_changed(GtkRange *range, gpointer user_data) {
+    float value = gtk_range_get_value(range);
+    player.setPositionPercent(value);
+    g_print("Time slider value: %.2f\n", value);
 }
 void createMusicTimeSlider(GtkWidget *right_container){
 
-
     GtkWidget *slider = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0.0, 100.0, 1.0);
-
     gtk_range_set_value(GTK_RANGE(slider), 50.0);
     gtk_scale_set_draw_value(GTK_SCALE(slider), FALSE);
-    g_signal_connect(slider, "value-changed", G_CALLBACK(on_slider_changed), NULL);
+    g_signal_connect(slider, "value-changed", G_CALLBACK(on_time_slider_changed), NULL);
 
     gtk_container_add(GTK_CONTAINER(right_container), slider);
 
