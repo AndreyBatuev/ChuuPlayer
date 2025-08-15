@@ -2,30 +2,66 @@
 #include <iostream>
 #include <gtk/gtk.h>
 
+static GtkWidget *position_slider = NULL;
+static guint slider_timeout_id = 0;
 static AudioPlayer player;
 
+void on_time_slider_changed(GtkRange *range, gpointer user_data) {
+    if (position_slider && GTK_IS_RANGE(position_slider)) {
+        float value = gtk_range_get_value(range);
+        player.setPositionPercent(value);
+        g_print("Time slider: %.1f%%\n", value);
+    }
+}
+
+gboolean update_slider(gpointer user_data) {
+    if (position_slider && GTK_IS_RANGE(position_slider)) {
+        if (player.getStatus() == sf::SoundSource::Playing) {
+            float pos = player.getPositionPercent();
+            g_signal_handlers_block_by_func(position_slider,
+                                            (gpointer)on_time_slider_changed,
+                                            NULL);
+            gtk_range_set_value(GTK_RANGE(position_slider), pos);
+            g_signal_handlers_unblock_by_func(position_slider,
+                                              (gpointer)on_time_slider_changed,
+                                              NULL);
+        }
+    }
+    return G_SOURCE_CONTINUE;
+}
+
 int PlayClick(GtkWidget *widget, gpointer data) {
-    g_print("PlayBtn %s\n", (char*)data);
+    if (slider_timeout_id > 0) {
+        g_source_remove(slider_timeout_id);
+    }
 
     if (!player.load("song.mp3")) {
-        std::cerr << "Failed to load audio file!" << std::endl;
+        g_printerr("Failed to load audio file!\n");
         return 1;
     }
 
     player.play();
     player.setVolume(100.0f);
 
-    sf::SoundSource::Status status = player.getStatus();
-    const char* statusStr;
-    switch(status) {
-        case sf::SoundSource::Stopped: statusStr = "Stopped"; break;
-        case sf::SoundSource::Paused:  statusStr = "Paused"; break;
-        case sf::SoundSource::Playing: statusStr = "Playing"; break;
-        default: statusStr = "Unknown";
-    }
-    g_print("Playback status: %s\n", statusStr);
+    slider_timeout_id = g_timeout_add(100, update_slider, NULL);
+
     return 0;
 }
+
+void createMusicTimeSlider(GtkWidget *right_container) {
+    position_slider = gtk_scale_new_with_range(
+        GTK_ORIENTATION_HORIZONTAL,
+        0.0, 100.0, 1.0);
+
+    gtk_range_set_value(GTK_RANGE(position_slider), 0.0);
+    gtk_scale_set_draw_value(GTK_SCALE(position_slider), FALSE);
+    g_signal_connect(position_slider, "value-changed",
+                     G_CALLBACK(on_time_slider_changed), NULL);
+
+    gtk_container_add(GTK_CONTAINER(right_container), position_slider);
+}
+
+
 int NextClick(GtkWidget *widget, gpointer data) {
     g_print("NextBtn %s\n", (char*)data);
 
@@ -37,21 +73,6 @@ int BackClick(GtkWidget *widget, gpointer data) {
     return 0;
 }
 
-void on_time_slider_changed(GtkRange *range, gpointer user_data) {
-    float value = gtk_range_get_value(range);
-    player.setPositionPercent(value);
-    g_print("Time slider value: %.2f\n", value);
-}
-void createMusicTimeSlider(GtkWidget *right_container){
-
-    GtkWidget *slider = gtk_scale_new_with_range(GTK_ORIENTATION_HORIZONTAL, 0.0, 100.0, 1.0);
-    gtk_range_set_value(GTK_RANGE(slider), 50.0);
-    gtk_scale_set_draw_value(GTK_SCALE(slider), FALSE);
-    g_signal_connect(slider, "value-changed", G_CALLBACK(on_time_slider_changed), NULL);
-
-    gtk_container_add(GTK_CONTAINER(right_container), slider);
-
-}
 void createButtons(GtkWidget *right_container) {
     GtkWidget *button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);  
     
