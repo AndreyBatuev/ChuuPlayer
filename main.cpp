@@ -2,9 +2,30 @@
 #include <iostream>
 #include <gtk/gtk.h>
 
-void PlayClick(GtkWidget *widget, gpointer data) {
+static AudioPlayer player;
+
+int PlayClick(GtkWidget *widget, gpointer data) {
     g_print("PlayBtn %s\n", (char*)data);
-} 
+
+    if (!player.load("song.mp3")) {
+        std::cerr << "Failed to load audio file!" << std::endl;
+        return 1;
+    }
+
+    player.play();
+    player.setVolume(100.0f);
+
+    sf::SoundSource::Status status = player.getStatus();
+    const char* statusStr;
+    switch(status) {
+        case sf::SoundSource::Stopped: statusStr = "Stopped"; break;
+        case sf::SoundSource::Paused:  statusStr = "Paused"; break;
+        case sf::SoundSource::Playing: statusStr = "Playing"; break;
+        default: statusStr = "Unknown";
+    }
+    g_print("Playback status: %s\n", statusStr);
+    return 0;
+}
 
 void on_slider_changed(GtkRange *range, gpointer user_data) {
     double value = gtk_range_get_value(range);

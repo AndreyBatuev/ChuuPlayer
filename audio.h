@@ -10,7 +10,7 @@ public:
     void pause();
     void stop();
     void setVolume(float volume);
-
+    sf::SoundSource::Status getStatus();
 
 private:
     sf::Music music;
