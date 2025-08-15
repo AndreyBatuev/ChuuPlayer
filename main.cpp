@@ -5,6 +5,7 @@
 static GtkWidget *position_slider = NULL;
 static guint slider_timeout_id = 0;
 static AudioPlayer player;
+static GtkWidget *play_button = NULL;
 
 void on_time_slider_changed(GtkRange *range, gpointer user_data) {
     if (position_slider && GTK_IS_RANGE(position_slider)) {
@@ -14,9 +15,10 @@ void on_time_slider_changed(GtkRange *range, gpointer user_data) {
     }
 }
 
-gboolean update_slider(gpointer user_data) {
+gboolean update_time_slider(gpointer user_data) {
     if (position_slider && GTK_IS_RANGE(position_slider)) {
-        if (player.getStatus() == sf::SoundSource::Playing) {
+        sf::SoundSource::Status status = player.getStatus();
+        if (status == sf::SoundSource::Playing) {
             float pos = player.getPositionPercent();
             g_signal_handlers_block_by_func(position_slider,
                                             (gpointer)on_time_slider_changed,
@@ -26,24 +28,43 @@ gboolean update_slider(gpointer user_data) {
                                               (gpointer)on_time_slider_changed,
                                               NULL);
         }
+        else if (status == sf::SoundSource::Stopped) {
+            GtkWidget *playBtn = play_button;
+            gtk_button_set_label(GTK_BUTTON(playBtn), "Play");
+            return G_SOURCE_REMOVE;
+        }
     }
     return G_SOURCE_CONTINUE;
 }
 
 int PlayClick(GtkWidget *widget, gpointer data) {
-    if (slider_timeout_id > 0) {
-        g_source_remove(slider_timeout_id);
+    const gchar* current_label = gtk_button_get_label(GTK_BUTTON(widget));
+
+    if (g_strcmp0(current_label, "Play") == 0) {
+        gtk_button_set_label(GTK_BUTTON(widget), "Pause");
+
+        if (player.getStatus() == sf::SoundSource::Stopped) {
+            if (slider_timeout_id > 0) {
+                g_source_remove(slider_timeout_id);
+            }
+
+            if (!player.load("song.mp3")) {
+                g_printerr("Failed to load audio file!\n");
+                gtk_button_set_label(GTK_BUTTON(widget), "Play");
+                return 1;
+            }
+
+            player.play();
+            player.setVolume(100.0f);
+            slider_timeout_id = g_timeout_add(100, update_time_slider, NULL);
+        } else {
+            player.play();
+        }
     }
-
-    if (!player.load("song.mp3")) {
-        g_printerr("Failed to load audio file!\n");
-        return 1;
+    else {
+        gtk_button_set_label(GTK_BUTTON(widget), "Play");
+        player.pause();
     }
-
-    player.play();
-    player.setVolume(100.0f);
-
-    slider_timeout_id = g_timeout_add(100, update_slider, NULL);
 
     return 0;
 }
@@ -72,26 +93,24 @@ int BackClick(GtkWidget *widget, gpointer data) {
 
     return 0;
 }
-
 void createButtons(GtkWidget *right_container) {
-    GtkWidget *button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);  
-    
-    GtkWidget *align = gtk_alignment_new(0.5, 0.9, 0, 0);  
-    
+    GtkWidget *button_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+
+    GtkWidget *align = gtk_alignment_new(0.5, 0.9, 0, 0);
+
     GtkWidget *nextBtn = gtk_button_new_with_label("Next");
     GtkWidget *playBtn = gtk_button_new_with_label("Play");
     GtkWidget *backBtn = gtk_button_new_with_label("Back");
-    
+
     g_signal_connect(nextBtn, "clicked", G_CALLBACK(NextClick), (gpointer)"Next");
-    g_signal_connect(playBtn, "clicked", G_CALLBACK(PlayClick), (gpointer)"Play");
+    g_signal_connect(playBtn, "clicked", G_CALLBACK(PlayClick), NULL);
     g_signal_connect(backBtn, "clicked", G_CALLBACK(BackClick), (gpointer)"Back");
-    
+
     gtk_box_pack_start(GTK_BOX(button_box), nextBtn, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(button_box), playBtn, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(button_box), backBtn, FALSE, FALSE, 0);
-    
-    gtk_container_add(GTK_CONTAINER(align), button_box);  
-    
+
+    gtk_container_add(GTK_CONTAINER(align), button_box);
     gtk_container_add(GTK_CONTAINER(right_container), align);
 }
 
@@ -107,21 +126,21 @@ int main(int argc, char *argv[]) {
 
     GtkWidget *left_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_box_pack_start(GTK_BOX(hbox), left_container, FALSE, FALSE, 0);
-    
+
     GtkWidget *right_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_box_pack_start(GTK_BOX(hbox), right_container, TRUE, TRUE, 0);
 
     GtkCssProvider *provider = gtk_css_provider_new();
     gtk_css_provider_load_from_data(provider,
-        "#left { background: #c978bb; min-width: 200px; }"
-        "#right { background: #c03833; }", -1, NULL);
-    
+                                    "#left { background: #c978bb; min-width: 200px; }"
+                                    "#right { background: #c03833; }", -1, NULL);
+
     gtk_widget_set_name(left_container, "left");
     gtk_widget_set_name(right_container, "right");
     gtk_style_context_add_provider_for_screen(
         gdk_screen_get_default(),
-        GTK_STYLE_PROVIDER(provider),
-        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+                                              GTK_STYLE_PROVIDER(provider),
+                                              GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
 
     createButtons(right_container);
