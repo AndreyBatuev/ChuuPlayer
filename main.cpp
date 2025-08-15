@@ -26,6 +26,16 @@ int PlayClick(GtkWidget *widget, gpointer data) {
     g_print("Playback status: %s\n", statusStr);
     return 0;
 }
+int NextClick(GtkWidget *widget, gpointer data) {
+    g_print("NextBtn %s\n", (char*)data);
+
+    return 0;
+}
+int BackClick(GtkWidget *widget, gpointer data) {
+    g_print("BackBtn %s\n", (char*)data);
+
+    return 0;
+}
 
 void on_slider_changed(GtkRange *range, gpointer user_data) {
     double value = gtk_range_get_value(range);
@@ -52,9 +62,9 @@ void createButtons(GtkWidget *right_container) {
     GtkWidget *playBtn = gtk_button_new_with_label("Play");
     GtkWidget *backBtn = gtk_button_new_with_label("Back");
     
-    g_signal_connect(nextBtn, "clicked", G_CALLBACK(PlayClick), (gpointer)"Next");
+    g_signal_connect(nextBtn, "clicked", G_CALLBACK(NextClick), (gpointer)"Next");
     g_signal_connect(playBtn, "clicked", G_CALLBACK(PlayClick), (gpointer)"Play");
-    g_signal_connect(backBtn, "clicked", G_CALLBACK(PlayClick), (gpointer)"Back");
+    g_signal_connect(backBtn, "clicked", G_CALLBACK(BackClick), (gpointer)"Back");
     
     gtk_box_pack_start(GTK_BOX(button_box), nextBtn, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(button_box), playBtn, FALSE, FALSE, 0);
