@@ -117,9 +117,39 @@ void createIconTrack(GtkWidget *right_container){
     GtkWidget *image = gtk_image_new_from_file("unknownArtist.png");
 
 
-
     gtk_container_add(GTK_CONTAINER(right_container), image);
 }
+
+int OpenFileWithMusic(GtkWidget *widget, gpointer data) {
+    g_print("Open file %s\n", (char*)data);
+
+    return 0;
+}
+int OpenFolderWithMusic(GtkWidget *widget, gpointer data) {
+    g_print("Open Folder %s\n", (char*)data);
+
+    return 0;
+}
+void createLeftList(GtkWidget *left_container) {
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    gtk_container_add(GTK_CONTAINER(left_container), vbox);
+
+    GtkWidget *file_image = gtk_image_new_from_icon_name("document-open", GTK_ICON_SIZE_BUTTON);
+    GtkWidget *folder_image = gtk_image_new_from_icon_name("folder-open", GTK_ICON_SIZE_BUTTON);
+    
+    GtkWidget *OpenFile = gtk_button_new_with_label("Open File");
+    GtkWidget *OpenFolder = gtk_button_new_with_label("Open Folder");
+    
+    gtk_button_set_image(GTK_BUTTON(OpenFile), file_image);
+    gtk_button_set_image(GTK_BUTTON(OpenFolder), folder_image);
+
+    g_signal_connect(OpenFile, "clicked", G_CALLBACK(OpenFileWithMusic), NULL);
+    g_signal_connect(OpenFolder, "clicked", G_CALLBACK(OpenFolderWithMusic), NULL);
+
+    gtk_box_pack_start(GTK_BOX(vbox), OpenFile, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), OpenFolder, FALSE, FALSE, 0);
+}
+
 int main(int argc, char *argv[]) {
     gtk_init(&argc, &argv);
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -132,6 +162,7 @@ int main(int argc, char *argv[]) {
 
     GtkWidget *left_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_box_pack_start(GTK_BOX(hbox), left_container, FALSE, FALSE, 0);
+    createLeftList(left_container);
 
     GtkWidget *right_container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_box_pack_start(GTK_BOX(hbox), right_container, TRUE, TRUE, 0);
@@ -147,7 +178,6 @@ int main(int argc, char *argv[]) {
         gdk_screen_get_default(),
                                               GTK_STYLE_PROVIDER(provider),
                                               GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
     createIconTrack(right_container);
     createButtons(right_container);
     createMusicTimeSlider(right_container);
