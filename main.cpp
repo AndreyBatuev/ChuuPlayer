@@ -113,7 +113,13 @@ void createButtons(GtkWidget *right_container) {
     gtk_container_add(GTK_CONTAINER(align), button_box);
     gtk_container_add(GTK_CONTAINER(right_container), align);
 }
+void createIconTrack(GtkWidget *right_container){
+    GtkWidget *image = gtk_image_new_from_file("unknownArtist.png");
 
+
+
+    gtk_container_add(GTK_CONTAINER(right_container), image);
+}
 int main(int argc, char *argv[]) {
     gtk_init(&argc, &argv);
     GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -142,7 +148,7 @@ int main(int argc, char *argv[]) {
                                               GTK_STYLE_PROVIDER(provider),
                                               GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-
+    createIconTrack(right_container);
     createButtons(right_container);
     createMusicTimeSlider(right_container);
 
